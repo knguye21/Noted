@@ -1,14 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Task } from '../types/types';
+import { getAuth } from 'firebase/auth';
 
 interface TaskFormProps {
     initialTask?: Task | null; // Optional initial task
-    onSave: (updatedTask: Task) => void;
-    onCancel: () => void;
+    onSave: (updatedTask: Task) => void; // Required function
+    onCancel: () => void; // Required function
 }
 
-const TaskForm = ({ initialTask, onSave = () => {}, onCancel }: TaskFormProps) => {
-    
+const TaskForm = ({ initialTask, onSave, onCancel }: TaskFormProps) => {
     const [taskName, setTaskName] = useState(initialTask?.taskName || '');
     const [description, setDescription] = useState(initialTask?.description || '');
     const [dateEnd, setDateEnd] = useState(
@@ -19,22 +19,43 @@ const TaskForm = ({ initialTask, onSave = () => {}, onCancel }: TaskFormProps) =
     );
     const [status, setStatus] = useState(initialTask?.status || '');
     const [priority, setPriority] = useState(initialTask?.priority || '');
+    const [createdBy, setCreatedBy] = useState<string>(''); // This will hold the createdBy (userId)
+    
+    
+    // Firebase Auth hook to get the current user's info
+    useEffect(() => {
+        const auth = getAuth();
+        const user = auth.currentUser; // Get the current logged-in user
+        if (user) {
+            setCreatedBy(user.uid); // Use Firebase user UID as createdBy
+        }
+    }, []);
+
+    // Set a default value for dateBegin and timeBegin (you can adjust these as per your requirements)
+    const dateBegin = initialTask?.dateBegin || new Date().toISOString().split('T')[0]; // Current date
+    const timeBegin = initialTask?.timeBegin || '08:00'; // Default start time (can be updated if needed)
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        if (onSave) {
+            const updatedTask: Task = {
+                id: initialTask?.id || '', // Use the existing ID if updating
+                taskName,
+                description,
+                createdBy, // Add the createdBy field
+                dateBegin: new Date(`${dateBegin}T${timeBegin}`), 
+                dateEnd: dateEnd && timeEnd ? new Date(`${dateEnd}T${timeEnd}`) : null, 
+                status,
+                priority,
+                timeBegin,  
+                timeEnd     
+            };
 
-        const updatedTask = {
-            ...initialTask, // Merge with the existing task data
-            taskName, // Updated task fields
-            description,
-            dateEnd: dateEnd && timeEnd ? new Date(`${dateEnd}T${timeEnd}`) : null,
-            timeEnd,
-            status,
-            priority,
-        };
-
-        console.log('Submitting updated task:', updatedTask); // Log for debugging
-        onSave(updatedTask); // Pass the updated task to the onSave callback
+            console.log('Submitting updated task:', updatedTask);
+            onSave(updatedTask);
+        } else {
+            console.error('onSave function is not defined!');
+        }
     };
 
     return (
@@ -84,9 +105,9 @@ const TaskForm = ({ initialTask, onSave = () => {}, onCancel }: TaskFormProps) =
                         className="w-full border rounded p-2"
                     >
                         <option value="">Select Status</option>
-                        <option value="not started">not started</option>
-                        <option value="in progress">in progress</option>
-                        <option value="completed">completed</option>
+                        <option value="not started">Not Started</option>
+                        <option value="in progress">In Progress</option>
+                        <option value="completed">Completed</option>
                     </select>
                 </div>
                 <div>
@@ -97,9 +118,9 @@ const TaskForm = ({ initialTask, onSave = () => {}, onCancel }: TaskFormProps) =
                         className="w-full border rounded p-2"
                     >
                         <option value="">Select Priority</option>
-                        <option value="Low">low</option>
-                        <option value="Medium">medium</option>
-                        <option value="High">high</option>
+                        <option value="low">Low</option>
+                        <option value="medium">Medium</option>
+                        <option value="high">High</option>
                     </select>
                 </div>
                 <div className="flex space-x-4">

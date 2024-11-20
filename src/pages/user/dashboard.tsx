@@ -102,7 +102,7 @@ const Dashboard = () => {
 
     return (
         <div className="flex">
-            <UserNav />
+            <UserNav/>
             <div className="border-2 w-full border-base300 m-10">
                 <p>Hi, {userInfo?.firstName}!</p>
                 <h2>To-Do</h2>

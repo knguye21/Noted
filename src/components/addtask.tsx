@@ -19,7 +19,7 @@ const AddTask = () => {
             }
             // Add task using the addTask utility function
             const newTaskId = await addTask(task);
-
+    
             // Optionally update the local state with the new task (if needed for immediate UI update)
             setTasks([...tasks, { ...task, id: newTaskId }]);
             setIsFormVisible(false); // Close the form after adding a task
@@ -46,7 +46,7 @@ const AddTask = () => {
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                     <div className="bg-white p-6 rounded shadow-lg max-w-lg w-full">
                         <TaskForm
-                            onSubmit={handleAddTask}
+                            onSave={handleAddTask}
                             onCancel={handleCancel}
                         />
                     </div>
